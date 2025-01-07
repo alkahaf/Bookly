@@ -13,7 +13,7 @@ namespace Bookly.Controllers
         public IActionResult Index()
         {
             List<Category> objCategoryList = _db.Category.ToList();
-            return View();
+            return View(objCategoryList);
         }
     }
 }
