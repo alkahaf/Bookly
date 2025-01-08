@@ -55,14 +55,9 @@ namespace Bookly.Controllers
         [HttpPost]
         public IActionResult Edit(Category obj)
         {
-            if (obj.Name == obj.DisplayOrder.ToString())
-            {
-                ModelState.AddModelError("name", "The DisplayOrder cannot exactly match the Name.");
-            }
-
             if (ModelState.IsValid)
             {
-                _db.Category.Add(obj);
+                _db.Category.Update(obj);
                 _db.SaveChanges();
                 return RedirectToAction("Index");
             }
