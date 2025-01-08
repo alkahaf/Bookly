@@ -72,8 +72,7 @@ namespace Bookly.Controllers
             }
 
             Category? categoryFromDb = _db.Category.Find(id);
-            // Category? categoryFromDb1 = _db.Category.FirstOrDefault(u => u.Id==id);//Link Operation
-            //Category? categoryFromDb2 = _db.Category.Where(u => u.Id == id).FirstOrDefault();
+        
             if (categoryFromDb == null)
             {
                 return NotFound();
