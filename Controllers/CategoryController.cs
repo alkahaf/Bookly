@@ -64,5 +64,35 @@ namespace Bookly.Controllers
             return View();
         }
 
+        public IActionResult Delete(int? id)
+        {
+            if (id == null || id == 0)
+            {
+                return NotFound();
+            }
+
+            Category? categoryFromDb = _db.Category.Find(id);
+            // Category? categoryFromDb1 = _db.Category.FirstOrDefault(u => u.Id==id);//Link Operation
+            //Category? categoryFromDb2 = _db.Category.Where(u => u.Id == id).FirstOrDefault();
+            if (categoryFromDb == null)
+            {
+                return NotFound();
+            }
+            return View(categoryFromDb);
+        }
+        [HttpPost, ActionName("Delete")]
+        public IActionResult DeletePOST(int? id)
+        {
+            Category obj = _db.Category.Find(id);
+            if (obj == null)
+            {
+                return NotFound();
+            }
+            _db.Category.Remove(obj);
+            _db.SaveChanges();
+            return RedirectToAction("Index");
+         
+        }
+
     }
 }
