@@ -1,5 +1,6 @@
 ﻿
 using Bookly.DataAccess.Data;
+using Bookly.DataAccess.Repository.IRepository;
 using Bookly.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,13 +8,14 @@ namespace Bookly.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _db;
-        public CategoryController(ApplicationDbContext db) {
-        _db = db;   
+        private readonly ICategoryRepository _categoryRepo;
+        public CategoryController(ICategoryRepository db) 
+        {
+            _categoryRepo = db;   
         }
         public IActionResult Index()
         {
-            List<Category> objCategoryList = _db.Category.ToList();
+            List<Category> objCategoryList = _categoryRepo.GetAll().ToList();
             return View(objCategoryList);
         }
         public IActionResult Create()
@@ -30,8 +32,8 @@ namespace Bookly.Controllers
 
             if (ModelState.IsValid)
             {
-                _db.Category.Add(obj);
-                _db.SaveChanges();
+                _categoryRepo.Add(obj);
+                _categoryRepo.Save();
                 TempData["success"]="Category created successfully";
                 return RedirectToAction("Index");
             }
@@ -45,8 +47,8 @@ namespace Bookly.Controllers
                 return NotFound();
             }
 
-            Category? categoryFromDb = _db.Category.Find(id);
-           // Category? categoryFromDb1 = _db.Category.FirstOrDefault(u => u.Id==id);//Link Operation
+            Category? categoryFromDb = _categoryRepo.Get(u => u.Id == id);
+            // Category? categoryFromDb1 = _db.Category.FirstOrDefault(u => u.Id==id);//Link Operation
             //Category? categoryFromDb2 = _db.Category.Where(u => u.Id == id).FirstOrDefault();
             if (categoryFromDb == null) 
             {
@@ -59,8 +61,8 @@ namespace Bookly.Controllers
         {
             if (ModelState.IsValid)
             {
-                _db.Category.Update(obj);
-                _db.SaveChanges();
+                _categoryRepo.Update(obj);
+                _categoryRepo.Save();
                 TempData["success"] = "Category updated successfully";
 
                 return RedirectToAction("Index");
@@ -75,7 +77,7 @@ namespace Bookly.Controllers
                 return NotFound();
             }
 
-            Category? categoryFromDb = _db.Category.Find(id);
+            Category? categoryFromDb = _categoryRepo.Get(u=> u.Id == id);
         
             if (categoryFromDb == null)
             {
@@ -86,13 +88,13 @@ namespace Bookly.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeletePOST(int? id)
         {
-            Category obj = _db.Category.Find(id);
+            Category obj = _categoryRepo.Get(u => u.Id == id);
             if (obj == null)
             {
                 return NotFound();
             }
-            _db.Category.Remove(obj);
-            _db.SaveChanges();
+            _categoryRepo.Remove(obj);
+            _categoryRepo.Save();
             TempData["success"] = "Category deleted successfully";
 
             return RedirectToAction("Index");
