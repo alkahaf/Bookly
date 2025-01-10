@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookly", "Bookly.csproj", "{6BE6B57D-FF85-4EC9-9E21-81ACFEA0F775}"
+	ProjectSection(ProjectDependencies) = postProject
+		{59D22A7B-D2FF-4594-BE72-4F8B7D32DADE} = {59D22A7B-D2FF-4594-BE72-4F8B7D32DADE}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookly.DataAccess", "..\Bookly.DataAccess\Bookly.DataAccess.csproj", "{515DC7F3-D4ED-460A-B0C8-F9BDB752A494}"
 EndProject

@@ -1,17 +1,18 @@
-﻿
-using Bookly.DataAccess.Data;
+﻿using Bookly.DataAccess.Data;
 using Bookly.DataAccess.Repository.IRepository;
 using Bookly.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bookly.Controllers
+namespace Bookly.Areas.Admin.Controllers
 {
+    [Area("Admin")]
+  
     public class CategoryController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public CategoryController(IUnitOfWork unitOfWork) 
+        public CategoryController(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;   
+            _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
         {
@@ -34,7 +35,7 @@ namespace Bookly.Controllers
             {
                 _unitOfWork.Category.Add(obj);
                 _unitOfWork.Save();
-                TempData["success"]="Category created successfully";
+                TempData["success"] = "Category created successfully";
                 return RedirectToAction("Index");
             }
             return View();
@@ -42,7 +43,7 @@ namespace Bookly.Controllers
 
         public IActionResult Edit(int? id)
         {
-            if(id == null || id == 0)
+            if (id == null || id == 0)
             {
                 return NotFound();
             }
@@ -50,7 +51,7 @@ namespace Bookly.Controllers
             Category? categoryFromDb = _unitOfWork.Category.Get(u => u.Id == id);
             // Category? categoryFromDb1 = _db.Category.FirstOrDefault(u => u.Id==id);//Link Operation
             //Category? categoryFromDb2 = _db.Category.Where(u => u.Id == id).FirstOrDefault();
-            if (categoryFromDb == null) 
+            if (categoryFromDb == null)
             {
                 return NotFound();
             }
@@ -77,8 +78,8 @@ namespace Bookly.Controllers
                 return NotFound();
             }
 
-            Category? categoryFromDb = _unitOfWork.Category.Get(u=> u.Id == id);
-        
+            Category? categoryFromDb = _unitOfWork.Category.Get(u => u.Id == id);
+
             if (categoryFromDb == null)
             {
                 return NotFound();
@@ -98,7 +99,7 @@ namespace Bookly.Controllers
             TempData["success"] = "Category deleted successfully";
 
             return RedirectToAction("Index");
-         
+
         }
 
     }

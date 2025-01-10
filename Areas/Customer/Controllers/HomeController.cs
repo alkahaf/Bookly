@@ -2,8 +2,9 @@ using System.Diagnostics;
 using Bookly.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bookly.Controllers
+namespace Bookly.Areas.Customer.Controllers
 {
+    [Area("Customer")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
