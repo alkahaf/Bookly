@@ -1,7 +1,9 @@
-﻿using Bookly.DataAccess.Data;
+﻿using System.Collections.Generic;
+using Bookly.DataAccess.Data;
 using Bookly.DataAccess.Repository.IRepository;
 using Bookly.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Bookly.Areas.Admin.Controllers
 {
@@ -17,10 +19,19 @@ namespace Bookly.Areas.Admin.Controllers
         public IActionResult Index()
         {
             List<Product> objProductList = _unitOfWork.Product.GetAll().ToList();
+
+           
             return View(objProductList);
         }
         public IActionResult Create()
         {
+            IEnumerable<SelectListItem> CategoryList = _unitOfWork.Category.GetAll().Select(u => new SelectListItem
+            {
+                Text = u.Name,
+                Value = u.Id.ToString()
+            });
+
+            ViewBag.CategoryList = CategoryList;
             return View();
         }
         [HttpPost]
