@@ -20,10 +20,8 @@
 				</div>
 				
 				<div class="form-floating py-2 col-12">
-					<input asp-for="Product.Description" class="form-control border-0 shadow" />
+					<textarea asp-for="Product.Description" class="form-control border-0 shadow" ></textarea>
 					<label asp-for="Product.Description" class="ms-2"></label>
-				
-					<span asp-validation-for="Product.Description" class="text-danger"></span>
 				</div>
 				<div class="form-floating py-2 col-12">
 					<input asp-for="Product.ISBN" class="form-control border-0 shadow" />
@@ -98,6 +96,12 @@
 
 
 @section Scripts{
+	<script>
+		tinymce.init({
+		  selector: '#mytextarea'
+		});
+	</script>
+	  
 	@{
 		<partial name="_ValidationScriptsPartial"/>
 	}
