@@ -19,8 +19,8 @@
 					<span asp-validation-for="Product.Title" class="text-danger"></span>
 				</div>
 				
-				<div class="form-floating py-2 col-12">
-					<textarea asp-for="Product.Description" class="form-control border-0 shadow" ></textarea>
+				<div class=" py-2 col-12">
+					<textarea asp-for="Product.Description" class="text-muted border-0 shadow" ></textarea>
 					<label asp-for="Product.Description" class="ms-2"></label>
 				</div>
 				<div class="form-floating py-2 col-12">
@@ -101,12 +101,12 @@
 		  selector: 'textarea',
 		  plugins: [
 			// Core editing features
-			'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+			'anchor', 'autolink', 'charmap', 'codesample', 'emoticons',  'lists',  'table', 'visualblocks', 'wordcount',
 			// Your account includes a free trial of TinyMCE premium features
 			// Try the most popular premium features until Jan 27, 2025:
 			'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
 		  ],
-		  toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+		  toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | removeformat',
 		  tinycomments_mode: 'embedded',
 		  tinycomments_author: 'Author name',
 		  mergetags_list: [
