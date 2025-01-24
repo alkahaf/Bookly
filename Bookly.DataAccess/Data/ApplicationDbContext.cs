@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bookly.DataAccess.Data
 {
-    public class ApplicationDbContext :  IdentityDbContext
+    public class ApplicationDbContext :  IdentityDbContext<IdentityUser>
     {
         //connection string
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext>options ): base(options) 
