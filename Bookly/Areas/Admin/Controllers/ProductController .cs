@@ -3,6 +3,8 @@ using Bookly.DataAccess.Data;
 using Bookly.DataAccess.Repository.IRepository;
 using Bookly.Models;
 using Bookly.Models.ViewModels;
+using Bookly.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
@@ -10,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 namespace Bookly.Areas.Admin.Controllers
 {
     [Area("Admin")]
-  
+    [Authorize(Roles = SD.Role_Admin)]
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
