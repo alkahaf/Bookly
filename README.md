@@ -22,5 +22,6 @@ Bookly is an e-commerce application built using Blazor and .NET 8. It allows use
 1. Clone the repository:
 
 ### Screenshots
+Home Page
 ![image](https://github.com/user-attachments/assets/1ae5d257-216a-4ecf-8d03-d8d877eae244)
 
