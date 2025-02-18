@@ -1,7 +1,7 @@
 # Bookly e-Commerce
 
 ## Project Description
-Bookly is an e-commerce application built using Blazor and .NET 8. It allows users to browse, search, and purchase books online. The application includes features for managing products, categories, and user accounts.
+Bookly is an e-commerce application built using Razor and .NET 8. It allows users to browse, search, and purchase books online. The application includes features for managing products, categories, and user accounts.
 
 ## Features
 - User authentication and authorization
