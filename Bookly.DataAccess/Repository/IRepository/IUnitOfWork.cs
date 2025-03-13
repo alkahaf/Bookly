@@ -12,7 +12,7 @@ namespace Bookly.DataAccess.Repository.IRepository
         IProductRepository Product { get; }
         ICompanyRepository Company { get; }
 
-
+        IShoppingCartRepository ShoppingCart { get; }
         void Save();
     }
 }
