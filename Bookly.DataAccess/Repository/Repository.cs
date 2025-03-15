@@ -26,8 +26,11 @@ namespace Bookly.DataAccess.Repository
         {
             dbSet.Add(entity);
         }
-        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked=false)
         {
+            if (tracked)
+            {
+
             IQueryable<T> query = dbSet;
             query = query.Where(filter);
             if (!string.IsNullOrEmpty(includeProperties))
@@ -40,6 +43,22 @@ namespace Bookly.DataAccess.Repository
             }
             
             return query.FirstOrDefault();
+            }
+            else
+            {
+                IQueryable<T> query = dbSet.AsNoTracking();
+                query = query.Where(filter);
+                if (!string.IsNullOrEmpty(includeProperties))
+                {
+                    foreach (var includeProp in includeProperties.
+                        Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        query = query.Include(includeProp);
+                    }
+                }
+
+                return query.FirstOrDefault();  
+            }
         }
         //Category,CoverType
 

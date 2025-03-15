@@ -49,11 +49,13 @@ namespace Bookly.Areas.Customer.Controllers
 
             if(cartFromDb != null)
             {
+                //shopping cart exist
                 cartFromDb.Count += shoppingCart.Count;
                 _unitOfWork.ShoppingCart.Update(cartFromDb);
             }
             else
             {
+                //add cart record
                 _unitOfWork.ShoppingCart.Add(shoppingCart);
 
             }
