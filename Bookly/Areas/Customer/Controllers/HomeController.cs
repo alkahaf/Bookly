@@ -59,6 +59,7 @@ namespace Bookly.Areas.Customer.Controllers
                 _unitOfWork.ShoppingCart.Add(shoppingCart);
 
             }
+            TempData["Success"] = "Cart update successfully";
 
             _unitOfWork.Save();
             return RedirectToAction(nameof(Index));

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Bookly.DataAccess.Data;
 using Bookly.DataAccess.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bookly.DataAccess.Repository
 {
@@ -28,10 +29,20 @@ namespace Bookly.DataAccess.Repository
         }
         public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked=false)
         {
+            IQueryable<T> query;
             if (tracked)
             {
 
-            IQueryable<T> query = dbSet;
+                query = dbSet;
+            
+            
+            return query.FirstOrDefault();
+            }
+            else
+            {
+               query = dbSet.AsNoTracking();
+               
+            }
             query = query.Where(filter);
             if (!string.IsNullOrEmpty(includeProperties))
             {
@@ -41,24 +52,8 @@ namespace Bookly.DataAccess.Repository
                     query = query.Include(includeProp);
                 }
             }
-            
-            return query.FirstOrDefault();
-            }
-            else
-            {
-                IQueryable<T> query = dbSet.AsNoTracking();
-                query = query.Where(filter);
-                if (!string.IsNullOrEmpty(includeProperties))
-                {
-                    foreach (var includeProp in includeProperties.
-                        Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        query = query.Include(includeProp);
-                    }
-                }
 
-                return query.FirstOrDefault();  
-            }
+            return query.FirstOrDefault();
         }
         //Category,CoverType
 
