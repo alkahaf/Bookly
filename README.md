@@ -23,5 +23,6 @@ Bookly is an e-commerce application built using Razor and .NET 8. It allows user
 
 ### Screenshots
 Home Page
-![image](https://github.com/user-attachments/assets/1ae5d257-216a-4ecf-8d03-d8d877eae244)
+![image](https://github.com/user-attachments/assets/60ca8ded-1539-4b3e-acb0-f35e2dd1d773)
+
 
