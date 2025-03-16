@@ -84,11 +84,11 @@ html {
 }
 
 .bg-primary {
-    background-color: #192E2F !important;
+    background-color: #000000 !important;
 }
 
 .bg-secondary {
-    background-color: #3A595C !important;
+    background-color: #000000 !important;
 }
 
 bg-success {
@@ -108,7 +108,7 @@ bg-success {
 
 
 .btn-outline-primary {
-    color: #192E2F;
+    color: #000000;
     border-color: #192E2F;
 }
 
@@ -245,7 +245,7 @@ bg-success {
 
 .btn-primary {
     color: #fff;
-    background-color: #192E2F;
+    background-color: #000000;
     border-color: #192E2F;
 }
 
@@ -253,7 +253,7 @@ bg-success {
 
     .btn-primary:hover {
         color: #fff;
-        background-color: #445f5e;
+        background-color: #0c3635;
         border-color: #445f5e;
     }
 
