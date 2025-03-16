@@ -28,7 +28,8 @@ Home Page
 
 Details Page (Details of Books)
 
-![image](https://github.com/user-attachments/assets/88d09de5-3637-4a7f-8130-b67e089126f5)
+![image](https://github.com/user-attachments/assets/4f966da8-bf62-4f3b-89a5-b01615be0cf4)
+
 
 
 
