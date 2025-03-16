@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Bookly.DataAccess.Repository.IRepository;
+using Bookly.DataAcess.Migrations;
 using Bookly.Models;
 using Bookly.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +27,30 @@ namespace Bookly.Areas.Customer.Controllers
                 .GetAll(u=>u.ApplicationUserId == userId,
                 includeProperties:"Product") };
 
+            foreach (var cart in ShoppingCartVM.ShoppingCartList)
+            {
+                cart.Price = GetPriceBasedOnQuantity(cart);
+                ShoppingCartVM.OrderTotal += (cart.Price * cart.Count);
+            }
             return View(ShoppingCartVM);
+        }
+        private double GetPriceBasedOnQuantity(ShoppingCart shoppingCart)
+        {
+            if(shoppingCart.Count <= 50)
+            {
+                return shoppingCart.Product.Price;
+            }
+            else
+            {
+                if(shoppingCart.Count <= 100)
+                {
+                    return shoppingCart.Product.Price50;
+                }
+                else
+                {
+                    return shoppingCart.Product.Price100;
+                }
+            }
         }
     }
 }
