@@ -57,5 +57,5 @@ Shopping Cart
 
 Oder Summary 
 
-![image](https://github.com/user-attachments/assets/a72f9245-9670-47f7-9280-dd608bed46d0)
+
 
