@@ -61,10 +61,6 @@ namespace Bookly.Areas.Customer.Controllers
 
 
 
-
-
-
-
             foreach (var cart in ShoppingCartVM.ShoppingCartList)
             {
                 cart.Price = GetPriceBasedOnQuantity(cart);
