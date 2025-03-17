@@ -22,7 +22,7 @@ namespace Bookly.DataAccess.Repository
 
         public void Update(OrderHeader obj)
         {
-            _db.OrderDetails.Update(obj);
+            _db.OrderHeaders.Update(obj);
         }
     }
 }
