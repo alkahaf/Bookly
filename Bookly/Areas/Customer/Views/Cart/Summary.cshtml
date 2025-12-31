@@ -115,11 +115,76 @@
 							@DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()
 						</p>
 					</div>
-					<div class="col-12 col-md-4">
-						<button type="submit" value="Place Order" class="btn btn-primary form-control">Place Order</button>
-					</div>
+					<button type="button" id="rzp-button" class="btn btn-primary form-control">
+						Place Order
+					</button>
+
 				</div>
 			</div>
 		</div>
 	</div>
+	<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+	<script>
+		document.getElementById('rzp-button').onclick = function (e) {
+			e.preventDefault();
+				var orderTotalUsd = @Model.OrderHeader.OrderTotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
+			fetch('/Customer/Order/CreateRazorPayOrder', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(orderTotalUsd)
+			})
+			.then(res => res.json())
+			.then(data => {
+
+				var options = {
+					key: data.key,
+					amount: data.amount,
+					currency: "INR",
+					name: "My Shop",
+					description: "Order Payment",
+					order_id: data.orderId,
+
+					handler: function (response) {
+
+						// 🔥 Call your EXISTING order placement logic
+						fetch('/Customer/Order/PaymentSuccess', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify({
+								razorpay_payment_id: response.razorpay_payment_id,
+								razorpay_order_id: response.razorpay_order_id,
+								razorpay_signature: response.razorpay_signature
+							})
+						})
+						.then(res => res.json())
+						.then(result => {
+							alert("Order placed successfully!");
+							window.location.href = '/Customer/Home/Index';
+						});
+					},
+
+					theme: {
+						color: "#3399cc"
+					}
+				};
+
+				var rzp = new Razorpay(options);
+				rzp.open();
+			})
+			.catch(err => {
+				console.error(err);
+				alert("Payment initiation failed");
+			});
+		};
+	</script>
+
+
+
+
 </form>
