@@ -125,64 +125,58 @@
 	</div>
 	<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-	<script>
-		document.getElementById('rzp-button').onclick = function (e) {
-			e.preventDefault();
-				var orderTotalUsd = @Model.OrderHeader.OrderTotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+<script>
+document.getElementById('rzp-button').onclick = function (e) {
+    e.preventDefault();
 
-			fetch('/Customer/Order/CreateRazorPayOrder', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(orderTotalUsd)
-			})
-			.then(res => res.json())
-			.then(data => {
+    // Render a JS literal safely using JSON serialization
+    var orderTotalUsd = @System.Text.Json.JsonSerializer.Serialize(Model.OrderHeader.OrderTotal);
 
-				var options = {
-					key: data.key,
-					amount: data.amount,
-					currency: "INR",
-					name: "My Shop",
-					description: "Order Payment",
-					order_id: data.orderId,
+    fetch('/Customer/Payment/CreateRazorPayOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderTotalUsd)
+    })
+    .then(res => res.json())
+    .then(data => {
 
-					handler: function (response) {
+        var options = {
+            key: data.key,
+            amount: data.amount,
+            currency: "INR",
+            name: "My Shop",
+            description: "Order Payment",
+            order_id: data.orderId,
 
-						// 🔥 Call your EXISTING order placement logic
-						fetch('/Customer/Order/PaymentSuccess', {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify({
-								razorpay_payment_id: response.razorpay_payment_id,
-								razorpay_order_id: response.razorpay_order_id,
-								razorpay_signature: response.razorpay_signature
-							})
-						})
-						.then(res => res.json())
-						.then(result => {
-							alert("Order placed successfully!");
-							window.location.href = '/Customer/Home/Index';
-						});
-					},
+            handler: function (response) {
+                fetch('/Customer/Payment/PaymentSuccess', {
+                    method: 'POST',
+                    credentials: 'same-origin', // <-- include auth cookie
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                })
+                .then(res => res.json())
+                .then(() => {
+                    alert("Order placed successfully!");
+                    window.location.href = '/Customer/Home/Index';
+                });
+            },
 
-					theme: {
-						color: "#3399cc"
-					}
-				};
+            theme: { color: "#3399cc" }
+        };
 
-				var rzp = new Razorpay(options);
-				rzp.open();
-			})
-			.catch(err => {
-				console.error(err);
-				alert("Payment initiation failed");
-			});
-		};
-	</script>
+        var rzp = new Razorpay(options);
+        rzp.open();
+    })
+    .catch(() => alert("Payment initiation failed"));
+};
+</script>
 
 
 
