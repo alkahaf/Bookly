@@ -6,6 +6,8 @@ using Bookly.Models.ViewModels;
 using Bookly.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Razorpay.Api;
 
 namespace Bookly.Areas.Customer.Controllers
 {
@@ -15,11 +17,14 @@ namespace Bookly.Areas.Customer.Controllers
     public class CartController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly RazorpaySettings _razorpay;
+
         [BindProperty]
         public ShoppingCartVM ShoppingCartVM { get; set; }
-        public CartController(IUnitOfWork unitOfWork)
+        public CartController(IUnitOfWork unitOfWork, IOptions<RazorpaySettings> razorpayOptions)
         {
             _unitOfWork = unitOfWork;
+            _razorpay = razorpayOptions.Value;
         }
         public IActionResult Index()
         {
@@ -68,7 +73,7 @@ namespace Bookly.Areas.Customer.Controllers
                 cart.Price = GetPriceBasedOnQuantity(cart);
                 ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
             }
-     
+
             return View(ShoppingCartVM);
         }
 
@@ -122,15 +127,66 @@ namespace Bookly.Areas.Customer.Controllers
                 _unitOfWork.OrderDetail.Add(orderDetail);
                 _unitOfWork.Save();
             }
+
             if (applicationUser.CompanyId.GetValueOrDefault() == 0)
             {  //it is a regular customer account and we need to capture payment
                 //razorpay logic
+                if (string.IsNullOrWhiteSpace(_razorpay.KeyId) || string.IsNullOrWhiteSpace(_razorpay.Secret))
+                {
+                    // configuration missing - fail fast
+                    return StatusCode(500, "Razorpay keys not configured");
+                }
+
+                try
+                {
+                    // Amount expected in paise (INR). Make sure OrderTotal is in INR; adjust if needed.
+                    var amountInPaise = (int)Math.Round(ShoppingCartVM.OrderHeader.OrderTotal * 100);
+
+                    var client = new RazorpayClient(_razorpay.KeyId, _razorpay.Secret);
+                    var options = new Dictionary<string, object>
+                    {
+                        { "amount", amountInPaise },
+                        { "currency", "INR" },
+                        { "receipt", $"order_rcptid_{ShoppingCartVM.OrderHeader.Id}" }
+                    };
+
+                    Order razorOrder = client.Order.Create(options);
+                    var razorOrderId = razorOrder["id"]?.ToString();
+
+                    // persist Razorpay order id (SessionId) so PaymentSuccess/webhook can link it
+                    if (!string.IsNullOrEmpty(razorOrderId))
+                    {
+                        ShoppingCartVM.OrderHeader.SessionId = razorOrderId;
+                        _unitOfWork.OrderHeader.Update(ShoppingCartVM.OrderHeader);
+                        _unitOfWork.Save();
+                    }
+
+                    // Redirect to OrderConfirmation where client-side JS can use the saved SessionId to open checkout.
+                    return RedirectToAction(nameof(OrderConfirmation), new { id = ShoppingCartVM.OrderHeader.Id });
+                }
+                catch (Exception ex)
+                {
+                    // log exception as needed (omitted) and return error to user
+                    return StatusCode(500, new { message = "Failed to create payment session", error = ex.Message });
+                }
                 }
                 return RedirectToAction(nameof(OrderConfirmation),new {id=ShoppingCartVM.OrderHeader.Id});
         }
         public IActionResult OrderConfirmation(int id)
         {
-            return View(id);
+            var orderHeader = _unitOfWork.OrderHeader.Get(h => h.Id == id);
+            if (orderHeader == null)
+                return NotFound();
+
+            var vm = new Bookly.Models.ViewModels.OrderConfirmationVM
+            {
+                OrderHeaderId = orderHeader.Id,
+                RazorpayKey = _razorpay.KeyId,
+                RazorpayOrderId = orderHeader.SessionId, // must be populated when you created the Razorpay order
+                AmountInPaise = (int)Math.Round(orderHeader.OrderTotal * 100) // ensure OrderTotal is INR
+            };
+
+            return View(vm);
         }
 
         public IActionResult Plus(int cartId)

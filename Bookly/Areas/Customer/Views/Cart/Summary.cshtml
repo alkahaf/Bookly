@@ -123,60 +123,63 @@
 			</div>
 		</div>
 	</div>
+
 	<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<script>
-document.getElementById('rzp-button').onclick = function (e) {
-    e.preventDefault();
+	<script>
+		document.getElementById("rzp-button").onclick = function () {
 
-    // Render a JS literal safely using JSON serialization
-    var orderTotalUsd = @System.Text.Json.JsonSerializer.Serialize(Model.OrderHeader.OrderTotal);
+			var orderData = {
+				name: "@Model.OrderHeader.Name",
+				phoneNumber: "@Model.OrderHeader.PhoneNumber",
+				streetAddress: "@Model.OrderHeader.StreetAddress",
+				city: "@Model.OrderHeader.City",
+				state: "@Model.OrderHeader.State",
+				postalCode: "@Model.OrderHeader.PostalCode",
+				orderTotal: parseFloat("@Model.OrderHeader.OrderTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)")
+			};
 
-    fetch('/Customer/Payment/CreateRazorPayOrder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderTotalUsd)
-    })
-    .then(res => res.json())
-    .then(data => {
+			fetch('/Customer/Payment/CreateRazorPayOrder', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(orderData)
+			})
+			.then(res => res.json())
+			.then(data => {
 
-        var options = {
-            key: data.key,
-            amount: data.amount,
-            currency: "INR",
-            name: "My Shop",
-            description: "Order Payment",
-            order_id: data.orderId,
+				var options = {
+					key: data.key,
+					amount: data.amount,
+					currency: "INR",
+					name: "Bookly Store",
+					order_id: data.razorpayOrderId,
 
-            handler: function (response) {
-                fetch('/Customer/Payment/PaymentSuccess', {
-                    method: 'POST',
-                    credentials: 'same-origin', // <-- include auth cookie
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature
-                    })
-                })
-                .then(res => res.json())
-                .then(() => {
-                    alert("Order placed successfully!");
-                    window.location.href = '/Customer/Home/Index';
-                });
-            },
+					handler: function (response) {
 
-            theme: { color: "#3399cc" }
-        };
+						// ✅ THIS WAS MISSING
+						fetch('/Customer/Payment/PaymentSuccess', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								razorpay_payment_id: response.razorpay_payment_id,
+								razorpay_order_id: response.razorpay_order_id,
+								razorpay_signature: response.razorpay_signature,
+								orderHeaderId: data.orderId // 🔥 FIX
+							})
+						})
+						.then(res => res.json())
+						.then(result => {
+							if (result.success) {
+								window.location.href = "/Customer/Cart/OrderConfirmation?orderId=" + data.orderId;
+							}
+						});
+					}
+				};
 
-        var rzp = new Razorpay(options);
-        rzp.open();
-    })
-    .catch(() => alert("Payment initiation failed"));
-};
-</script>
+				new Razorpay(options).open();
+			});
+		};
+	</script>
 
 
 

@@ -1,14 +1,69 @@
-﻿@model int
+﻿@model Bookly.Models.ViewModels.OrderConfirmationVM
 
-<div class="container row pt-4">
-    <div class="col-12 text-center">
-        <h1 class="text-primary text-center">Order Placed Successfully!</h1>
-        Your Order Number is : @Model <br /><br />
-        <img src="~/images/lawn_leaf.jpg" width="65%" />
-    </div>
-    <div class="col-12 text-center" style="color:maroon">
-        <br />
-        Your order has been placed successfully! <br />
-    </div>
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
 
-</div> 
+<h2>Order #@Model.OrderHeaderId</h2>
+
+<p>Amount: @((Model.AmountInPaise / 100.0).ToString("0.00")) INR</p>
+
+<button id="rzp-button" class="btn btn-primary">Pay Now</button>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    (function () {
+        const key = "@Model.RazorpayKey";
+        const orderId = "@Model.RazorpayOrderId";
+        const amount = "@Model.AmountInPaise";
+
+        if (!key || !orderId) {
+            console.error("Razorpay key or order id missing. key:", key, "orderId:", orderId);
+            alert("Payment initiation failed. Please contact support.");
+            return;
+        }
+
+        const options = {
+            "key": key,
+            "amount": amount, // in paise
+            "currency": "INR",
+            "name": "Bookly",
+            "description": "Order #" + @Model.OrderHeaderId,
+            "order_id": orderId,
+            "handler": function (response) {
+                // response contains razorpay_payment_id, razorpay_order_id, razorpay_signature
+                fetch('/Customer/Payment/PaymentSuccess', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(response)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Server returned ' + res.status);
+                    return res.json();
+                })
+                .then(payload => {
+                    // you can redirect or show success
+                    window.location.href = '/Customer/Cart/OrderConfirmation?paymentSuccess=1&id=' + @Model.OrderHeaderId;
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Payment verification failed on server.');
+                });
+            },
+            "prefill": {
+                "name": "", // optionally fill with user data
+                "email": ""
+            },
+            "theme": {
+                "color": "#528FF0"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+
+        document.getElementById('rzp-button').addEventListener('click', function (e) {
+            rzp.open();
+            e.preventDefault();
+        });
+    })();
+</script>

@@ -1,79 +1,110 @@
-﻿using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Bookly.DataAccess.Repository.IRepository;
+﻿using Bookly.DataAccess.Repository.IRepository;
+using Bookly.Models;
+using Bookly.Models.DTOs;
 using Bookly.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Razorpay.Api;
+using System.Security.Claims;
 
-namespace Bookly.Controllers
+namespace Bookly.Areas.Customer.Controllers
 {
-    [ApiController]
-    [Route("api/webhook/razorpay")]
-    public class WebhookController : ControllerBase
+    [Area("Customer")]
+    [Authorize]
+    public class PaymentController : Controller
     {
         private readonly RazorpaySettings _razorpay;
         private readonly IUnitOfWork _unitOfWork;
 
-        public WebhookController(IOptions<RazorpaySettings> razorpayOptions, IUnitOfWork unitOfWork)
+        public PaymentController(
+            IOptions<RazorpaySettings> razorpayOptions,
+            IUnitOfWork unitOfWork)
         {
             _razorpay = razorpayOptions.Value;
             _unitOfWork = unitOfWork;
         }
 
+        // 🔹 CREATE RAZORPAY ORDER + DB ORDER
         [HttpPost]
-        [AllowAnonymous]
-        public async Task<IActionResult> Receive()
+        public IActionResult CreateRazorPayOrder([FromBody] OrderCreateDto model)
         {
-            using var reader = new StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var signature = Request.Headers["X-Razorpay-Signature"].FirstOrDefault();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(_razorpay.Secret))
-                return BadRequest();
-
-            try
+            OrderHeader orderHeader = new OrderHeader
             {
-                // Throws if invalid
-                Utils.verifyWebhookSignature(body, signature, _razorpay.Secret);
-            }
-            catch
+                ApplicationUserId = userId,
+                OrderDate = DateTime.Now,
+
+                // 🔥 STORE ALL DETAILS
+                Name = model.Name,
+                PhoneNumber = model.PhoneNumber,
+                StreetAddress = model.StreetAddress,
+                City = model.City,
+                State = model.State,
+                PostalCode = model.PostalCode,
+
+                OrderTotal = model.OrderTotal,
+                PaymentStatus = SD.PaymentStatusPending,
+                OrderStatus = SD.StatusPending
+            };
+
+            _unitOfWork.OrderHeader.Add(orderHeader);
+            _unitOfWork.Save();
+
+            RazorpayClient client =
+                new RazorpayClient(_razorpay.KeyId, _razorpay.Secret);
+
+            var options = new Dictionary<string, object>
+    {
+        { "amount", Convert.ToInt32(model.OrderTotal * 100) },
+        { "currency", "INR" },
+        { "receipt", orderHeader.Id.ToString() }
+    };
+
+            Order razorpayOrder = client.Order.Create(options);
+
+            return Json(new
             {
-                return BadRequest();
-            }
-
-            var doc = JsonDocument.Parse(body);
-            var root = doc.RootElement;
-            var eventType = root.GetProperty("event").GetString();
-
-            // handle event types you need (example: payment.captured, order.paid)
-            if (eventType == "payment.captured" || eventType == "order.paid")
-            {
-                // attempt to extract payment id and order id from payload
-                if (root.TryGetProperty("payload", out var payload) &&
-                    payload.TryGetProperty("payment", out var paymentWrapper) &&
-                    paymentWrapper.TryGetProperty("entity", out var paymentEntity))
-                {
-                    var paymentId = paymentEntity.GetProperty("id").GetString();
-                    var orderId = paymentEntity.TryGetProperty("order_id", out var o) ? o.GetString() : null;
-
-                    // find order header by PaymentIntentId or by previously stored razorpay order id if you saved it
-                    var orderHeader = _unitOfWork.OrderHeader.Get(h => h.PaymentIntentId == paymentId 
-                                                                       || h.PaymentIntentId == orderId);
-                    if (orderHeader != null)
-                    {
-                        orderHeader.PaymentStatus = SD.PaymentStatusApproved;
-                        orderHeader.OrderStatus = SD.StatusApproved;
-                        _unitOfWork.OrderHeader.Update(orderHeader);
-                        _unitOfWork.Save();
-                    }
-                }
-            }
-
-            return Ok();
+                key = _razorpay.KeyId,
+                razorpayOrderId = razorpayOrder["id"].ToString(),
+                amount = razorpayOrder["amount"],
+                orderId = orderHeader.Id
+            });
         }
+
+        // 🔹 PAYMENT SUCCESS
+        [HttpPost]
+        public IActionResult PaymentSuccess([FromBody] RazorpayPaymentResponseDto model)
+        {
+            var orderHeader = _unitOfWork.OrderHeader
+                .Get(o => o.Id == model.orderHeaderId);
+
+            if (orderHeader == null)
+            {
+                return Json(new { success = false, message = "Order not found" });
+            }
+
+            orderHeader.PaymentIntentId = model.razorpay_payment_id;
+            orderHeader.PaymentStatus = SD.PaymentStatusApproved;
+            orderHeader.OrderStatus = SD.StatusApproved;
+            orderHeader.PaymentDate = DateTime.Now;
+
+            _unitOfWork.OrderHeader.Update(orderHeader);
+            _unitOfWork.Save();
+
+            return Json(new { success = true });
+        }
+    }
+
+        // 🔹 Razorpay Response Model
+        public class RazorpayResponse
+    {
+        public string razorpay_payment_id { get; set; }
+        public string razorpay_order_id { get; set; }
+        public string razorpay_signature { get; set; }
+
+        // 👇 ADD THIS (receipt sent back from JS)
+        public string receipt { get; set; }
     }
 }
